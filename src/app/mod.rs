@@ -1,30 +1,23 @@
 // App structure module. Loading Gameplay, Scene transition stuff is placed here.
 pub mod loading;
+pub mod spawn_scene;
+pub mod gameplay;
 
-use bevy::{ecs::schedule::ScheduleLabel, prelude::*};
+use bevy::prelude::*;
 
-// State of the application
+/// State of the application
 #[derive(Default, Clone, Debug, PartialEq, Eq, Hash, States, Reflect)]
 pub enum AppState{
-    #[default] Loading,
-    MainMenu,
+    #[default] Startup,
+    Loading,
+    SpawnScene,
     Gameplay,
     Paused
 }
 
-// System group for Loading functionaltiy
-#[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet, Reflect)]
-pub struct LoadingUpdateSystems;
-
-// System group for Gameplay functionality
-#[derive(Debug, Clone, PartialEq, Eq, Hash, SystemSet, Reflect, ScheduleLabel)]
-pub struct GameplayUpdateSystems;
-
-// Runs when we enter gameplay state, makes the game window visible
-pub fn make_window_visible(mut windows: Query<&mut Window>){
-    for window in windows.iter_mut(){
-        window.into_inner().visible = true;
-    }
+/// Starts loading the app. Run first thing. Used so that OnEnter(Loading) actually exists
+pub fn begin_loading(mut next_state: ResMut<NextState<AppState>>){
+    next_state.set(AppState::Loading);
 }
 
 pub struct GameAppPlugin;
@@ -32,12 +25,12 @@ impl Plugin for GameAppPlugin{
     fn build(&self, app: &mut App) {
         app
             .register_type::<AppState>()
-            .register_type::<LoadingUpdateSystems>()
-            .register_type::<GameplayUpdateSystems>()
             .init_state::<AppState>()
-            .configure_sets(Update, LoadingUpdateSystems.run_if(in_state(AppState::Loading)))
-            .configure_sets(Update, GameplayUpdateSystems.run_if(in_state(AppState::Gameplay)))
-            .add_systems(OnExit(AppState::Loading), make_window_visible)
-            .add_plugins(loading::LoadingPlugin);
+            .add_plugins((
+                loading::LoadingPlugin, 
+                spawn_scene::SpawnScenePlugin,
+                gameplay::GameplayPlugin
+            ))
+            .add_systems(Startup, begin_loading);
     }
 }

@@ -1,4 +1,6 @@
 pub mod app;
+pub mod ecs;
+
 use bevy::{prelude::*, window::WindowResolution};
 
 
@@ -14,6 +16,6 @@ impl Plugin for Game{
             resolution: WindowResolution::new(800.0, 450.0),
             ..Default::default()
         }), ..Default::default()}))
-        .add_plugins(app::GameAppPlugin);
+        .add_plugins((app::GameAppPlugin, ecs::EcsPlugin));
     }
 }
