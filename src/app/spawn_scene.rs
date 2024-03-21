@@ -1,7 +1,5 @@
 use std::f32::consts::PI;
-
 use bevy::prelude::*;
-
 use crate::{app::AppState, ecs::{assets::{images::ImageStore, shapes::Shapes}, main_camera::MainCamera, player::Player}};
 
 fn spawn_main_menu(mut commands: Commands, shapes: Res<Shapes>, images: Res<ImageStore>, mut next_state: ResMut<NextState<AppState>>){
@@ -38,13 +36,20 @@ fn spawn_main_menu(mut commands: Commands, shapes: Res<Shapes>, images: Res<Imag
         ..Default::default()
     });
     //Player
+    spawn_player(&mut commands, shapes.as_ref(), Vec2::ZERO);
+    next_state.set(AppState::Gameplay);
+    info!("Main Menu Scene has been spawned!");
+}
+
+// Spawns the player entity at a specified location.
+fn spawn_player(commands: &mut Commands, shapes: &Shapes, location: Vec2){
     commands.spawn((SpriteBundle{
         sprite: {
             let mut sprite = shapes.ring_sprite.clone(); sprite.custom_size = Some(Vec2::ONE*50.0); sprite
-        }, texture: shapes.ring.clone(), ..Default::default()
+        }, texture: shapes.ring.clone(), 
+        transform: Transform::from_translation(location.extend(0.0)),        
+        ..Default::default()
     }, Player));
-    next_state.set(AppState::Gameplay);
-    info!("Main Menu Scene has been spawned!");
 }
 
 /// Adds functionaltiy for spawning the main menu scene
